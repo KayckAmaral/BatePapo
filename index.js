@@ -92,6 +92,11 @@ function cadastroUsuarioView(req, resp, errors = {}, valores = {}) {
                 font-weight: 700;
             }
 
+            h2 {
+                color: #2e3a59;
+                font-weight: 700;
+            }
+
             .form-label {
                 font-size: 1rem;
                 font-weight: 600;
@@ -186,6 +191,7 @@ function cadastroUsuarioView(req, resp, errors = {}, valores = {}) {
                 }
                 h2 {
                     text-align: center;
+                    color: #2e3a59;
                 }
 
 
@@ -221,9 +227,8 @@ function cadastroUsuarioView(req, resp, errors = {}, valores = {}) {
             </div>
         </form>
 
-        <h2 class="mt-4 text-center">Usuários Cadastrados</h2> <!-- Centralizado com Bootstrap -->
+        <h2 class="mt-4 text-center">Usuários Cadastrados</h2>
         
-        <!-- Melhoria na exibição da lista -->
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
@@ -249,6 +254,284 @@ function cadastroUsuarioView(req, resp, errors = {}, valores = {}) {
 </html>
     `);
 }
+
+app.get('/batePapo', (req, resp) => {
+    resp.send(`
+        <html>
+            <head>
+                <title>Bate Papo</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f8f9fa;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .chat-container {
+                        max-width: 800px;
+                        margin: 10px auto;
+                        padding: 20px;
+                        background-color: white;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        height: auto;
+                        position: relative;
+                    }
+                    .messages-container {
+                        max-height: 270px;
+                        overflow-y: scroll;
+                        padding-right: 10px;
+                    }
+                    .message {
+                        border-bottom: 1px solid #eee;
+                        padding: 15px 0;
+                        display: flex;
+                        flex-direction: column;
+                        margin-bottom: 10px;
+                    }
+                    .message:last-child {
+                        border-bottom: none;
+                    }
+                    .message-header {
+                        font-weight: bold;
+                    }
+                    .message-time {
+                        font-size: 0.9em;
+                        color: #888;
+                        margin-top: 5px;
+                    }
+                    .form-label {
+                        font-weight: bold;
+                    }
+                    .form-control {
+                        border-radius: 4px;
+                    }
+                    .form-select {
+                        border-radius: 4px;
+                    }
+                    .btn-primary {
+                        background-color: #007bff;
+                        border-color: #007bff;
+                    }
+                    .btn-primary:hover {
+                        background-color: #0056b3;
+                        border-color: #004085;
+                    }
+                    .post-form-container {
+                        max-width: 800px;
+                        position: fixed;
+                        bottom: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background-color: white;
+                        padding: 15px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
+                        width: 80%;
+                        z-index: 10;
+                    }
+                    .error-message {
+                        color: red;
+                        font-size: 0.9em;
+                        margin-bottom: 10px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="chat-container">
+                    <h2><i class="bi bi-chat-dots"></i> Bate Papo</h2>
+                    <div class="messages-container" id="messages">
+                        ${mensagens.map(msg => `
+                            <div class="message">
+                                <div class="message-header">${msg.usuario}</div>
+                                <div>${msg.conteudo}</div>
+                                <div class="message-time">${msg.dataHora}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="post-form-container">
+                       <h3><i class="bi bi-envelope fs-4"></i> Postar Mensagem</h3>
+                        <form action="/postarMensagem" method="POST">
+                            <div class="mb-3">
+                                <label for="usuario" class="form-label">Escolha um Usuário</label>
+                                <select id="usuario" name="usuario" class="form-select">
+                                    <option value="">Selecione...</option>
+                                    ${listaUsuarios.map(u => `
+                                        <option value="${u.nome}">${u.nome}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="mensagem" class="form-label">Mensagem</label>
+                                <textarea id="mensagem" name="mensagem" class="form-control" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Postar</button>
+                            <a href="/" class="btn btn-secondary ms-3">Voltar para o Menu</a>
+                        </form>
+                    </div>
+                </div>
+            </body>
+        </html>
+    `);
+});
+
+app.post('/postarMensagem', (req, resp) => {
+    const { usuario, mensagem } = req.body;
+    let errors = {};
+
+    if (!usuario) {
+        errors.usuario = 'Usuário não selecionado';
+    }
+    if (!mensagem) {
+        errors.mensagem = 'Mensagem não pode estar vazia';
+    }
+
+    if (Object.keys(errors).length > 0) {
+        return resp.send(`
+            <html>
+                <head>
+                    <title>Postar Mensagem</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f8f9fa;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .chat-container {
+                            max-width: 800px;
+                            margin: 10px auto;
+                            padding: 20px;
+                            background-color: white;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                            height: auto;
+                            position: relative;
+                        }
+                        .messages-container {
+                            max-height: 270px;
+                            overflow-y: scroll;
+                            padding-right: 10px;
+                            margin-bottom: 80px;
+                        }
+                        .message {
+                            border-bottom: 1px solid #eee;
+                            padding: 15px 0;
+                            display: flex;
+                            flex-direction: column;
+                            margin-bottom: 10px;
+                        }
+                        .message:last-child {
+                            border-bottom: none;
+                        }
+                        .message-header {
+                            font-weight: bold;
+                        }
+                        .message-time {
+                            font-size: 0.9em;
+                            color: #888;
+                            margin-top: 5px;
+                        }
+                        .form-error {
+                            color: red;
+                            font-size: 0.9em;
+                            position: absolute;
+                            top: 0px; /* Ajuste a posição para que fique logo acima do campo */
+                            left: 200px;
+                            width: 50%;
+                            padding: 2px;
+                            background-color: #f8d7da; /* Cor de fundo suave para a mensagem de erro */
+                            border-radius: 3px;
+                            text-align: center;
+                            z-index: 2; /* Assegura que as mensagens de erro fiquem acima do campo */
+                    }
+                        .form-label {
+                            font-weight: bold;
+                        }
+                        .form-control {
+                            border-radius: 4px;
+                        }
+                        .form-select {
+                            border-radius: 4px;
+                        }
+                        .btn-primary {
+                            background-color: #007bff;
+                            border-color: #007bff;
+                        }
+                        .btn-primary:hover {
+                            background-color: #0056b3;
+                            border-color: #004085;
+                        }
+                        .post-form-container {
+                            max-width: 800px;
+                            position: fixed;
+                            bottom: 20px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background-color: white;
+                            padding: 15px;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                            border-radius: 8px;
+                            width: 80%;
+                            z-index: 10;
+                        }
+                        .error-message {
+                            color: red;
+                            font-size: 0.9em;
+                            margin-bottom: 10px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="chat-container">
+                        <h2><i class="bi bi-chat-dots"></i> Bate Papo</h2>
+                        <div class="messages-container">
+                            ${mensagens.map(msg => `
+                                <div class="message">
+                                    <div class="message-header">${msg.usuario}</div>
+                                    <div>${msg.conteudo}</div>
+                                    <div class="message-time">${msg.dataHora}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="post-form-container">
+                            <h3><i class="bi bi-envelope fs-4"></i> Postar Mensagem</h3>
+                            <form action="/postarMensagem" method="POST">
+                                <div class="mb-3 position-relative">
+                                    <label for="usuario" class="form-label">Escolha um Usuário</label>
+                                    <select id="usuario" name="usuario" class="form-select">
+                                        <option value="">Selecione...</option>
+                                        ${listaUsuarios.map(u => `
+                                            <option value="${u.nome}">${u.nome}</option>
+                                        `).join('')}
+                                    </select>
+                                    ${errors.usuario ? `<div class="form-error">${errors.usuario}</div>` : ''}
+                                </div>
+
+                                <div class="mb-3 position-relative">
+                                    <label for="mensagem" class="form-label">Mensagem</label>
+                                    <textarea id="mensagem" name="mensagem" class="form-control" rows="3"></textarea>
+                                    ${errors.mensagem ? `<div class="form-error">${errors.mensagem}</div>` : ''}
+                                </div>
+                            <button type="submit" class="btn btn-primary">Postar</button>
+                        </form>
+                        </div>
+                    </div>
+                </body>
+            </html>
+        `);
+    }
+
+    const dataHora = new Date().toLocaleString();
+    mensagens.push({ usuario, conteudo: mensagem, dataHora });
+    resp.redirect('/batePapo');
+});
+
+
+
 
 // Função para cadastrar o usuário e validar os dados
 function cadastrarUsuario(req, resp) {
@@ -375,10 +658,7 @@ app.get('/', (req, resp) => {
 app.get('/cadastrarUsuario', verificarAutenticacao, cadastroUsuarioView);  // Exibe o formulário de cadastro
 app.post('/cadastrarUsuario', verificarAutenticacao, cadastrarUsuario);     // Processa o cadastro
 
-// Página de bate-papo (em construção)
-app.get('/batePapo', (req, resp) => {
-    resp.send('<h1>Página de Bate Papo em Construção</h1>');
-});
+
 
 // Função para logout (limpar cookies e redirecionar)
 app.post('/logout', logout);
