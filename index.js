@@ -415,7 +415,6 @@ app.post('/postarMensagem', (req, resp) => {
                             max-height: 270px;
                             overflow-y: scroll;
                             padding-right: 10px;
-                            margin-bottom: 80px;
                         }
                         .message {
                             border-bottom: 1px solid #eee;
@@ -517,6 +516,7 @@ app.post('/postarMensagem', (req, resp) => {
                                     ${errors.mensagem ? `<div class="form-error">${errors.mensagem}</div>` : ''}
                                 </div>
                             <button type="submit" class="btn btn-primary">Postar</button>
+                            <a href="/" class="btn btn-secondary ms-3">Voltar para o Menu</a>
                         </form>
                         </div>
                     </div>
